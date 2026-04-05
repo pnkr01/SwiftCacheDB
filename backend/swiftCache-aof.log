@@ -1,0 +1,5 @@
+PUSH agent:alpha SYSTEM: Booting up.
+GRAPH_ADD job1 phase1 Start analysis
+PUSH agent:slow Hello! I am arriving very slowly.
+PUSH agent:abandoned Help me!
+PUSH agent:sneaky Hello!

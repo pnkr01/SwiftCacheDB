@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentMemory Dashboard</title>
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; font-family: 'Courier New', Courier, monospace; padding: 20px; }
+        h1 { color: #58a6ff; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+        .stats { background: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 15px; }
+        .card h3 { margin-top: 0; color: #3fb950; }
+        .badge { background: #1f6feb; color: white; padding: 2px 6px; border-radius: 10px; font-size: 12px; }
+        .task-list { list-style: none; padding: 0; }
+        .task-list li { margin: 5px 0; font-size: 14px; }
+        .status-COMPLETED { color: #3fb950; }
+        .status-IN_PROGRESS { color: #d29922; }
+        .status-PENDING { color: #8b949e; }
+    </style>
+</head>
+<body>
+
+<h1>🧠 AgentMemory Observability</h1>
+
+<div class="stats">
+    <strong>Engine Status:</strong> <span id="status" style="color:#3fb950">CONNECTING...</span> |
+    <strong>Total Keys in RAM:</strong> <span id="totalKeys">0</span>
+</div>
+
+<div class="grid" id="dashboard-grid">
+</div>
+
+<script>
+    async function fetchSystemState() {
+        try {
+            const response = await fetch('/api/v1/system');
+            const data = await response.json();
+
+            document.getElementById('status').innerText = data.status;
+            document.getElementById('totalKeys').innerText = data.totalKeys;
+
+            const grid = document.getElementById('dashboard-grid');
+            grid.innerHTML = ''; // Clear old data
+
+            // Loop through every key in the database
+            for (const [key, details] of Object.entries(data.memorySnapshot)) {
+                let cardHtml = `<div class="card"><h3>${key}</h3>`;
+                cardHtml += `<span class="badge">${details.type}</span><hr style="border-color:#30363d;">`;
+
+                if (details.type === 'Context Window') {
+                    cardHtml += `<p>Total Messages: <strong>${details.messageCount}</strong></p>`;
+                } else if (details.type === 'Reasoning Graph') {
+                    cardHtml += `<ul class="task-list">`;
+                    for (const [taskId, status] of Object.entries(details.tasks)) {
+                        cardHtml += `<li>[<span class="status-${status}">${status}</span>] ${taskId}</li>`;
+                    }
+                    cardHtml += `</ul>`;
+                }
+
+                cardHtml += `</div>`;
+                grid.innerHTML += cardHtml;
+            }
+        } catch (error) {
+            document.getElementById('status').innerText = 'OFFLINE';
+            document.getElementById('status').style.color = '#f85149';
+        }
+    }
+
+    // Poll the server every 1.5 seconds
+    setInterval(fetchSystemState, 1500);
+    fetchSystemState(); // Initial fetch
+</script>
+</body>
+</html>

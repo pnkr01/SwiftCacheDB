@@ -1,0 +1,4 @@
+PUSH agent:001 SYSTEM: You are an autonomous researcher.
+PUSH agent:001 USER: Analyze the latest market trends.
+GRAPH_ADD task:99 setup_env Initialize Docker containers
+GRAPH_ADD task:99 fetch_data Scrape competitor pricing
